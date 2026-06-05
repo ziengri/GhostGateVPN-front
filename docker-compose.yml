@@ -2,8 +2,24 @@ services:
   frontend:
     build: .
     environment:
-      API_BASE_URL: ${API_BASE_URL:-http://localhost:8000}
-    ports:
-      - "${FRONTEND_PORT:-5173}:80"
+      API_BASE_URL: ${API_BASE_URL:-https://api.ghostgate.pro}
+    expose:
+      - "80"
     restart: unless-stopped
 
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
