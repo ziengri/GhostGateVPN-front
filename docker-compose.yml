@@ -18,6 +18,8 @@ services:
       - caddy_config:/config
     depends_on:
       - frontend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
 volumes:

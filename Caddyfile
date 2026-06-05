@@ -1,3 +1,6 @@
 ghostgate.pro {
     reverse_proxy frontend:80
 }
+api.ghostgate.pro {
+    reverse_proxy host.docker.internal:8000
+}
