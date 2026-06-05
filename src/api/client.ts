@@ -67,10 +67,10 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 }
 
 export const api = {
-  register: (email: string, password: string) =>
+  register: (email: string, phoneNumber: string, password: string) =>
     request<TokenResponse>("/auth/register", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, phone_number: phoneNumber, password }),
     }),
   login: (email: string, password: string) =>
     request<TokenResponse>("/auth/login", {

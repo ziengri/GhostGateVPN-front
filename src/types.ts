@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   email: string;
+  phone_number: string;
   role: "user" | "admin" | "support";
   tgid: number | null;
   is_active: boolean;
