@@ -1,4 +1,4 @@
-import type { ApiErrorBody, Plan, Subscription, TokenResponse, User, UserRole, VpnConfig } from "../types";
+import type { ApiErrorBody, TokenResponse, User } from "../types";
 
 declare global {
   interface Window {
@@ -99,28 +99,12 @@ export const api = {
       body: JSON.stringify({ token, password }),
     }),
   me: (token: string) => request<User>("/me", {}, token),
-  plans: () => request<Plan[]>("/plans"),
-  currentSubscription: (token: string) => request<Subscription>("/subscriptions/current", {}, token),
-  vpnConfigs: (token: string) => request<VpnConfig[]>("/vpn/configs", {}, token),
-  createVpnConfig: (token: string) => request<VpnConfig>("/vpn/configs", { method: "POST" }, token),
-  revokeVpnConfig: (token: string, id: string) => request<VpnConfig>(`/vpn/configs/${id}/revoke`, { method: "POST" }, token),
-  downloadVpnConfig: async (token: string, id: string): Promise<Blob> => {
-    const response = await fetch(`${API_BASE_URL}/vpn/configs/${id}/download`, {
+  createAndDownloadVpnConfig: async (token: string): Promise<Blob> => {
+    const response = await fetch(`${API_BASE_URL}/vpn/configs/create-and-download`, {
+      method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) throw new ApiError(response.status, await parseError(response));
     return response.blob();
   },
-  adminUsers: (token: string) => request<User[]>("/admin/users", {}, token),
-  adminConfigs: (token: string) => request<VpnConfig[]>("/admin/configs", {}, token),
-  adminSubscriptions: (token: string) => request<Subscription[]>("/admin/subscriptions", {}, token),
-  patchUser: (token: string, id: string, data: { role?: UserRole; is_active?: boolean; tgid?: number | null }) =>
-    request<User>(
-      `/admin/users/${id}`,
-      {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      },
-      token,
-    ),
 };

@@ -37,8 +37,8 @@ export function VerifyEmailPage() {
       title="Подтверждение email"
       subtitle="Ссылка подтверждения обрабатывается backend-сервисом."
       footer={
-        <Link className="font-medium text-brand-700" to="/app/account">
-          Вернуться к аккаунту
+        <Link className="font-medium text-brand-700" to="/app">
+          Вернуться в кабинет
         </Link>
       }
     >
