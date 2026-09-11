@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import { ProtectedRoute } from "./ui/ProtectedRoute";
 import { AccountPage } from "./pages/AccountPage";
+import { AdminPage } from "./pages/AdminPage";
 import { DownloadPage } from "./pages/DownloadPage";
 import { LoginPage } from "./pages/LoginPage";
 import { PasswordResetPage } from "./pages/PasswordResetPage";
@@ -27,6 +28,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <AccountPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/app/admin",
+    element: (
+      <ProtectedRoute>
+        <AdminPage />
       </ProtectedRoute>
     ),
   },

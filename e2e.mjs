@@ -122,6 +122,26 @@ try {
   await page.goto(`${BASE}/app/account`);
   await page.getByText("Активна", { exact: true }).waitFor({ timeout: 10000 });
   await page.screenshot({ path: `${ARTIFACTS}/account.png`, fullPage: true });
+
+  // --- Админка (повышаем себя до админа через БД, роль подтянется через /me) ---
+  db(`UPDATE users SET role='admin' WHERE email='${email}'`);
+  await page.goto(`${BASE}/app`);
+  await page.getByRole("link", { name: "Админка" }).waitFor({ timeout: 10000 });
+  check("DownloadPage: ссылка «Админка» у админа", true);
+  await page.getByRole("link", { name: "Админка" }).click();
+  await page.getByRole("heading", { name: "Пользователи" }).waitFor({ timeout: 10000 });
+  await page.locator("table").first().getByText(email).first().waitFor({ timeout: 10000 });
+  check("AdminPage: список пользователей содержит свой email", true);
+
+  await page.locator("input[type=number]").first().fill("500");
+  await page.getByRole("button", { name: "ОК" }).first().click();
+  await page.getByText(/Баланс .* обновлён/).waitFor({ timeout: 10000 });
+  check("AdminPage: пополнение баланса через UI", true);
+
+  await page.getByRole("button", { name: "Отозвать" }).first().click();
+  await page.locator("span.badge", { hasText: "Отозван" }).first().waitFor({ timeout: 15000 });
+  check("AdminPage: отзыв конфига через UI", true);
+  await page.screenshot({ path: `${ARTIFACTS}/admin.png`, fullPage: true });
 } catch (err) {
   failures += 1;
   console.error("UNEXPECTED ERROR:", err.message);

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Apple, Download, FileText, LogOut, Plus, Smartphone, User, Wallet } from "lucide-react";
+import { Apple, Download, FileText, LogOut, Plus, ShieldCheck, Smartphone, User, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -98,6 +98,7 @@ export function DownloadPage() {
   });
 
   const activeCount = (configs ?? []).filter((config) => config.status === "active").length;
+  const isStaff = user?.role === "admin" || user?.role === "support";
 
   return (
     <main className="min-h-screen bg-surface px-4 py-6 text-ink">
@@ -116,6 +117,12 @@ export function DownloadPage() {
               <User className="h-4 w-4" />
               Аккаунт
             </Link>
+            {isStaff ? (
+              <Link className="btn btn-secondary" to="/app/admin">
+                <ShieldCheck className="h-4 w-4" />
+                Админка
+              </Link>
+            ) : null}
             <button className="btn btn-secondary" onClick={logout}>
               <LogOut className="h-4 w-4" />
               Выйти

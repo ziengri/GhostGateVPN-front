@@ -144,4 +144,13 @@ export const api = {
     if (!response.ok) throw new ApiError(response.status, await parseError(response));
     return response.blob();
   },
+  getAdminUsers: (token: string) => request<User[]>("/admin/users", {}, token),
+  patchAdminUser: (token: string, userId: string, patch: { is_active?: boolean }) =>
+    request<User>(`/admin/users/${userId}`, { method: "PATCH", body: JSON.stringify(patch) }, token),
+  adjustUserBalance: (token: string, userId: string, amount: number) =>
+    request<Balance>(`/admin/users/${userId}/balance`, { method: "POST", body: JSON.stringify({ amount, reason: "adjustment" }) }, token),
+  getAdminSubscriptions: (token: string) => request<Subscription[]>("/admin/subscriptions", {}, token),
+  getAdminConfigs: (token: string) => request<VpnConfig[]>("/admin/configs", {}, token),
+  revokeAdminConfig: (token: string, configId: string) =>
+    request<VpnConfig>(`/admin/configs/${configId}/revoke`, { method: "POST" }, token),
 };
