@@ -1,4 +1,15 @@
-import type { ApiErrorBody, TokenResponse, User } from "../types";
+import type {
+  ApiErrorBody,
+  Balance,
+  BalanceTransaction,
+  Plan,
+  PurchaseResult,
+  Subscription,
+  TelegramLinkCode,
+  TokenResponse,
+  User,
+  VpnConfig,
+} from "../types";
 
 declare global {
   interface Window {
@@ -28,7 +39,8 @@ export class ApiError extends Error {
 async function parseError(response: Response): Promise<string> {
   try {
     const body = (await response.json()) as ApiErrorBody;
-    return translateApiError(body.detail) ?? `Ошибка запроса: ${response.status}`;
+    const detail = Array.isArray(body.detail) ? body.detail[0]?.msg : body.detail;
+    return translateApiError(detail) ?? `Ошибка запроса: ${response.status}`;
   } catch {
     return `Ошибка запроса: ${response.status}`;
   }
@@ -48,6 +60,11 @@ function translateApiError(detail: string | undefined): string | undefined {
     "config not active": "VPN-конфиг не активен",
     "config expired": "Срок действия VPN-конфига истек",
     "awg-server unavailable": "VPN-сервер временно недоступен",
+    "insufficient funds": "Недостаточно средств. Пополните баланс у администратора",
+    "plan is not available": "Тариф недоступен",
+    "plan not found": "Тариф не найден",
+    "invalid or expired code": "Код недействителен или истёк",
+    "telegram already linked to another account": "Telegram уже привязан к другому аккаунту",
     forbidden: "Недостаточно прав",
   };
   return messages[detail] ?? detail;
@@ -67,10 +84,10 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 }
 
 export const api = {
-  register: (email: string, phoneNumber: string, password: string) =>
+  register: (email: string, password: string) =>
     request<TokenResponse>("/auth/register", {
       method: "POST",
-      body: JSON.stringify({ email, phone_number: phoneNumber, password }),
+      body: JSON.stringify({ email, password }),
     }),
   login: (email: string, password: string) =>
     request<TokenResponse>("/auth/login", {
@@ -99,9 +116,29 @@ export const api = {
       body: JSON.stringify({ token, password }),
     }),
   me: (token: string) => request<User>("/me", {}, token),
+  getPlans: () => request<Plan[]>("/plans"),
+  getCurrentSubscription: (token: string) => request<Subscription>("/subscriptions/current", {}, token),
+  getBalance: (token: string) => request<Balance>("/me/balance", {}, token),
+  getBalanceTransactions: (token: string) => request<BalanceTransaction[]>("/me/balance/transactions", {}, token),
+  purchasePlan: (token: string, planId: string) =>
+    request<PurchaseResult>("/subscriptions/purchase", {
+      method: "POST",
+      body: JSON.stringify({ plan_id: planId }),
+    }, token),
+  linkTelegram: (token: string) => request<TelegramLinkCode>("/me/telegram/link", { method: "POST" }, token),
+  unlinkTelegram: (token: string) => request<User>("/me/telegram", { method: "DELETE" }, token),
   createAndDownloadVpnConfig: async (token: string): Promise<Blob> => {
     const response = await fetch(`${API_BASE_URL}/vpn/configs/create-and-download`, {
       method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new ApiError(response.status, await parseError(response));
+    return response.blob();
+  },
+  getVpnConfigs: (token: string) => request<VpnConfig[]>("/vpn/configs", {}, token),
+  createVpnConfig: (token: string) => request<VpnConfig>("/vpn/configs", { method: "POST" }, token),
+  downloadVpnConfig: async (token: string, configId: string): Promise<Blob> => {
+    const response = await fetch(`${API_BASE_URL}/vpn/configs/${configId}/download`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) throw new ApiError(response.status, await parseError(response));
